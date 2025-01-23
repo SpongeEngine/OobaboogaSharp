@@ -1,12 +1,11 @@
 ﻿using FluentAssertions;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
-using SpongeEngine.OobaboogaSharp.Models.Common;
 using SpongeEngine.OobaboogaSharp.Models.Completion;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace SpongeEngine.OobaboogaSharp.Tests.Integration.Providers.OobaboogaSharpOpenAiCompatible
+namespace SpongeEngine.OobaboogaSharp.Tests.Integration
 {
     public class Synchronous : IntegrationTestBase
     {
@@ -16,7 +15,12 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration.Providers.OobaboogaSharp
         {
             _clientOobaboogaSharpClient = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
-                BaseUrl = TestConfig.BaseApiUrl
+                HttpClient = new HttpClient 
+                { 
+                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                },
+                BaseUrl = TestConfig.BaseApiUrl,
+                Logger = Logger,
             });
         }
 

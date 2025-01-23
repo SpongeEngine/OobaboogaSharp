@@ -7,7 +7,7 @@ using WireMock.ResponseBuilders;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Providers.OobaboogaSharpOpenAiCompatible
+namespace SpongeEngine.OobaboogaSharp.Tests.Unit
 {
     public class Tests : UnitTestBase
     {
@@ -19,7 +19,12 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Providers.OobaboogaSharpOpenAiC
             _httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
             _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
-                BaseUrl = TestConfig.BaseApiUrl
+                HttpClient = new HttpClient 
+                { 
+                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                },
+                BaseUrl = TestConfig.BaseApiUrl,
+                Logger = Logger,
             });
         }
 

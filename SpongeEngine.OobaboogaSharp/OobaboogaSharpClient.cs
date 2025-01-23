@@ -13,15 +13,7 @@ namespace SpongeEngine.OobaboogaSharp
 {
     public class OobaboogaSharpClient: LlmClientBase
     {
-        private readonly string _modelName;
-        private bool _disposed;
-
-        public OobaboogaSharpClient(OobaboogaSharpClientOptions options): base(options)
-        {
-            // _modelName = modelName;
-            // _logger = logger;
-            // _jsonSettings = jsonSettings;
-        }
+        public OobaboogaSharpClient(OobaboogaSharpClientOptions options): base(options) {}
 
         public async Task<string> CompleteAsync(
             string prompt,
@@ -30,7 +22,7 @@ namespace SpongeEngine.OobaboogaSharp
         {
             var request = new
             {
-                model = options?.ModelName ?? _modelName,
+                model = options?.ModelName,
                 prompt = prompt,
                 max_tokens = options?.MaxTokens ?? 80,
                 temperature = options?.Temperature ?? 0.7f,
@@ -72,7 +64,7 @@ namespace SpongeEngine.OobaboogaSharp
             
             ChatCompletionRequest request = new ChatCompletionRequest
             {
-                Model = options?.ModelName ?? _modelName,
+                Model = options?.ModelName,
                 Messages = messages,
                 Temperature = options?.Temperature,
                 TopP = options?.TopP,
@@ -108,7 +100,7 @@ namespace SpongeEngine.OobaboogaSharp
         {
             var request = new
             {
-                model = options?.ModelName ?? _modelName,
+                model = options?.ModelName,
                 prompt = prompt,
                 max_tokens = options?.MaxTokens ?? 80,
                 temperature = options?.Temperature ?? 0.7f,
@@ -312,7 +304,7 @@ namespace SpongeEngine.OobaboogaSharp
         {
             var request = new ChatCompletionRequest
             {
-                Model = options?.ModelName ?? _modelName,
+                Model = options?.ModelName,
                 Messages = messages,
                 Temperature = options?.Temperature,
                 TopP = options?.TopP,
@@ -350,24 +342,6 @@ namespace SpongeEngine.OobaboogaSharp
             {
                 return false;
             }
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    // Don't dispose the HttpClient as it was injected
-                }
-                _disposed = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         private class StreamCompletion

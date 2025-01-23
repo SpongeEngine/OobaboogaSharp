@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Newtonsoft.Json;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
-using SpongeEngine.OobaboogaSharp.Models.Common;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -19,7 +18,12 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
         {
             _clientOobaboogaSharpClient = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
-                BaseUrl = TestConfig.BaseApiUrl
+                HttpClient = new HttpClient 
+                { 
+                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                },
+                BaseUrl = TestConfig.BaseApiUrl,
+                Logger = Logger,
             });
         }
 
