@@ -1,6 +1,6 @@
-﻿using FluentAssertions;
+﻿using System.Text.Json;
+using FluentAssertions;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
 using WireMock.RequestBuilders;
@@ -51,18 +51,23 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
         [Fact]
         public async Task ChatCompleteAsync_ShouldHandleInstructMode()
         {
-            // Arrange
             var expectedResponse = new ChatCompletionResponse
             {
+                Id = "test",
+                Object = "chat.completion",
+                Created = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                Model = "test-model",
                 Choices = new List<ChatCompletionChoice>
                 {
                     new()
                     {
-                        Message = new ChatMessage 
-                        { 
-                            Role = "assistant", 
-                            Content = "Response" 
-                        }
+                        Index = 0,
+                        Message = new ChatMessage
+                        {
+                            Role = "assistant",
+                            Content = "Response"
+                        },
+                        FinishReason = "stop"
                     }
                 }
             };
@@ -73,15 +78,15 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithBody(body => body.Contains("\"mode\":\"instruct\""))
                     .UsingPost())
                 .RespondWith(Response.Create()
-                    .WithStatusCode(200)
-                    .WithBody(JsonConvert.SerializeObject(expectedResponse)));
+                    .WithHeader("Content-Type", "application/json")
+                    .WithBody(JsonSerializer.Serialize(expectedResponse)));
 
-            // Act
             var response = await Client.ChatCompleteAsync(
                 new List<ChatMessage> { new() { Role = "user", Content = "Test" } },
                 new ChatCompletionOptions { Mode = "instruct" });
 
-            // Assert
+            response.Should().NotBeNull();
+            response.Choices.Should().NotBeEmpty();
             response.Choices[0].Message.Content.Should().Be("Response");
         }
 
