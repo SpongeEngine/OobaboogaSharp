@@ -10,24 +10,20 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration
 {
     public class Streaming : IntegrationTestBase
     {
-        
         private readonly OobaboogaSharpClient _client;
-        private readonly ILogger<Streaming> _logger;
         
         public Streaming(ITestOutputHelper output) : base(output)
         {
-            _logger = LoggerFactory
-                .Create(builder => builder.AddXUnit(output))
-                .CreateLogger<Streaming>();
-
             _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 HttpClient = new HttpClient 
-                { 
-                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                {
+                    BaseAddress = new Uri(BaseApiUrl)
                 },
-                BaseUrl = TestConfig.BaseApiUrl,
-                Logger = Logger,
+                BaseUrl = BaseApiUrl,
+                Logger = LoggerFactory
+                    .Create(builder => builder.AddXUnit(output))
+                    .CreateLogger<Streaming>(),
             });
         }
 
@@ -55,7 +51,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration
             var chatMessages = new List<ChatMessage>();
             await foreach (var message in _client.StreamChatCompletionAsync(messages, options))
             {
-                _logger.LogInformation("Received message: {Content}", message.Content);
+                _client.Options.Logger?.LogInformation("Received message: {Content}", message.Content);
                 chatMessages.Add(message);
             }
 

@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
@@ -8,22 +9,24 @@ using Xunit;
 using Xunit.Abstractions;
 using Exception = SpongeEngine.OobaboogaSharp.Models.Common.Exception;
 
-namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
+namespace SpongeEngine.OobaboogaSharp.Tests.Unit
 {
     public class Synchronous : UnitTestBase
     {
-        private readonly OobaboogaSharpClient _clientOobaboogaSharpClient;
+        private readonly OobaboogaSharpClient _client;
 
         public Synchronous(ITestOutputHelper output) : base(output)
         {
-            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
+            _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 HttpClient = new HttpClient 
-                { 
-                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                {
+                    BaseAddress = new Uri(BaseApiUrl)
                 },
-                BaseUrl = TestConfig.BaseApiUrl,
-                Logger = Logger,
+                BaseUrl = BaseApiUrl,
+                Logger = LoggerFactory
+                    .Create(builder => builder.AddXUnit(output))
+                    .CreateLogger<Synchronous>(),
             });
         }
 
@@ -41,7 +44,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
                     .WithBody($"{{\"choices\": [{{\"text\": \"{expectedResponse}\"}}]}}"));
 
             // Act
-            var response = await _clientOobaboogaSharpClient.CompleteAsync("Test prompt");
+            var response = await _client.CompleteAsync("Test prompt");
 
             // Assert
             response.Should().Be(expectedResponse);
@@ -73,7 +76,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
                     .WithBody(JsonConvert.SerializeObject(expectedResponse)));
 
             // Act
-            var response = await _clientOobaboogaSharpClient.ChatCompleteAsync(
+            var response = await _client.ChatCompleteAsync(
                 new List<ChatMessage> { new() { Role = "user", Content = "Hi" } },
                 new ChatCompletionOptions { Character = "Example" });
 
@@ -94,7 +97,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
                     .WithBody("Internal server error"));
 
             // Act & Assert
-            var act = () => _clientOobaboogaSharpClient.CompleteAsync("Test prompt");
+            var act = () => _client.CompleteAsync("Test prompt");
             await act.Should().ThrowAsync<Exception>()
                 .WithMessage("Completion request failed");
         }
@@ -114,7 +117,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
                     .WithDelay(TimeSpan.FromSeconds(5)));
 
             // Act & Assert
-            var completeTask = _clientOobaboogaSharpClient.CompleteAsync("Test prompt", cancellationToken: cts.Token);
+            var completeTask = _client.CompleteAsync("Test prompt", cancellationToken: cts.Token);
             cts.Cancel();
     
             await Assert.ThrowsAsync<TaskCanceledException>(() => completeTask);

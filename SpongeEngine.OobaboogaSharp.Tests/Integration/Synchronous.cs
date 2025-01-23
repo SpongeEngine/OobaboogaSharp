@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
 using SpongeEngine.OobaboogaSharp.Models.Completion;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
@@ -9,18 +10,20 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration
 {
     public class Synchronous : IntegrationTestBase
     {
-        private readonly OobaboogaSharpClient _clientOobaboogaSharpClient;
+        private readonly OobaboogaSharpClient _client;
 
         public Synchronous(ITestOutputHelper output) : base(output)
         {
-            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
+            _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 HttpClient = new HttpClient 
-                { 
-                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                {
+                    BaseAddress = new Uri(BaseApiUrl)
                 },
-                BaseUrl = TestConfig.BaseApiUrl,
-                Logger = Logger,
+                BaseUrl = BaseApiUrl,
+                Logger = LoggerFactory
+                    .Create(builder => builder.AddXUnit(output))
+                    .CreateLogger<Synchronous>(),
             });
         }
 
@@ -31,7 +34,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration
             Skip.If(!ServerAvailable, "API endpoint not available");
 
             // Arrange & Act
-            var response = await _clientOobaboogaSharpClient.CompleteAsync(
+            var response = await _client.CompleteAsync(
                 "Once upon a time",
                 new CompletionOptions
                 {
@@ -58,7 +61,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration
             };
 
             // Act
-            var response = await _clientOobaboogaSharpClient.ChatCompleteAsync(
+            var response = await _client.ChatCompleteAsync(
                 messages,
                 new ChatCompletionOptions
                 {

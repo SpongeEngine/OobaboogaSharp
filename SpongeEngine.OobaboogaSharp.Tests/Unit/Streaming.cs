@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
 using SpongeEngine.OobaboogaSharp.Models.Completion;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
@@ -8,22 +9,24 @@ using Xunit;
 using Xunit.Abstractions;
 using Exception = SpongeEngine.OobaboogaSharp.Models.Common.Exception;
 
-namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
+namespace SpongeEngine.OobaboogaSharp.Tests.Unit
 {
     public class Streaming : UnitTestBase
     {
-        private readonly OobaboogaSharpClient _clientOobaboogaSharpClient;
+        private readonly OobaboogaSharpClient _client;
 
         public Streaming(ITestOutputHelper output) : base(output)
         {
-            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
+            _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 HttpClient = new HttpClient 
-                { 
-                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                {
+                    BaseAddress = new Uri(BaseApiUrl)
                 },
-                BaseUrl = TestConfig.BaseApiUrl,
-                Logger = Logger,
+                BaseUrl = BaseApiUrl,
+                Logger = LoggerFactory
+                    .Create(builder => builder.AddXUnit(output))
+                    .CreateLogger<Streaming>(),
             });
         }
 
@@ -57,7 +60,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
             };
             var receivedMessages = new List<ChatMessage>();
         
-            await foreach (var message in _clientOobaboogaSharpClient.StreamChatCompletionAsync(messages))
+            await foreach (var message in _client.StreamChatCompletionAsync(messages))
             {
                 receivedMessages.Add(message);
             }
@@ -88,7 +91,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
 
             // Act
             var receivedTokens = new List<string>();
-            await foreach (var token in _clientOobaboogaSharpClient.StreamCompletionAsync(
+            await foreach (var token in _client.StreamCompletionAsync(
                 "Test prompt",
                 new CompletionOptions { StopSequences = new[] { "." } }))
             {
@@ -121,7 +124,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
             // Using Func<Task> for async assertions
             Func<Task> act = async () => 
             {
-                await foreach (var _ in _clientOobaboogaSharpClient.StreamChatCompletionAsync(messages))
+                await foreach (var _ in _client.StreamChatCompletionAsync(messages))
                 {
                     // Should throw before yielding any results
                 }

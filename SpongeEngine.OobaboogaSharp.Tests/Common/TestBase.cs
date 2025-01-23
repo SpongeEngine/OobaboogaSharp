@@ -3,22 +3,20 @@ using Xunit.Abstractions;
 
 namespace SpongeEngine.OobaboogaSharp.Tests.Common
 {
-    public abstract class TestBase : IDisposable
+    public abstract class TestBase
     {
-        protected readonly ILogger Logger;
         protected readonly ITestOutputHelper Output;
-
+        
         protected TestBase(ITestOutputHelper output)
         {
             Output = output;
-            Logger = LoggerFactory
-                .Create(builder => builder.AddXUnit(output))
-                .CreateLogger(GetType());
         }
+        
+        private const string DefaultHost = "http://127.0.0.1:5000";
 
-        public virtual void Dispose()
-        {
-            // Cleanup if needed
-        }
+        public static string BaseApiUrl => Environment.GetEnvironmentVariable("OOBABOOGA_BASE_URL") ?? $"{DefaultHost}";
+            
+        // Extended timeout for large models
+        public static int TimeoutSeconds => 120;
     }
 }

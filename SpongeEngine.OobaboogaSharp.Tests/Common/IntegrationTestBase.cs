@@ -16,7 +16,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Common
             try
             {
                 using var httpClient = new HttpClient();
-                var response = await httpClient.GetAsync($"{TestConfig.BaseApiUrl}/v1/models");
+                var response = await httpClient.GetAsync($"{BaseApiUrl}/v1/models");
                 ServerAvailable = response.IsSuccessStatusCode;
 
                 if (ServerAvailable)

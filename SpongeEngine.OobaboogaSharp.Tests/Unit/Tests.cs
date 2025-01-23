@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
@@ -20,11 +21,13 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
             _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 HttpClient = new HttpClient 
-                { 
-                    BaseAddress = new Uri(TestConfig.BaseApiUrl)
+                {
+                    BaseAddress = new Uri(BaseApiUrl)
                 },
-                BaseUrl = TestConfig.BaseApiUrl,
-                Logger = Logger,
+                BaseUrl = BaseApiUrl,
+                Logger = LoggerFactory
+                    .Create(builder => builder.AddXUnit(output))
+                    .CreateLogger<Tests>(),
             });
         }
 
@@ -101,12 +104,6 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
 
             // Assert
             isAvailable.Should().BeTrue();
-        }
-
-        public override void Dispose()
-        {
-            _httpClient.Dispose();
-            base.Dispose();
         }
     }
 }

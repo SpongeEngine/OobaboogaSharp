@@ -13,11 +13,5 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Common
             Server = WireMockServer.Start();
             BaseUrl = Server.Urls[0];
         }
-
-        public override void Dispose()
-        {
-            Server?.Dispose();
-            base.Dispose();
-        }
     }
 }
