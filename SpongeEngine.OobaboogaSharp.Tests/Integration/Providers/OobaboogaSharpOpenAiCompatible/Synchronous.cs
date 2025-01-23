@@ -14,10 +14,10 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration.Providers.OobaboogaSharp
 
         public Synchronous(ITestOutputHelper output) : base(output)
         {
-            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new Options
+            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 BaseUrl = TestConfig.BaseApiUrl
-            }, Logger);
+            });
         }
 
         [SkippableFact]

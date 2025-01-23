@@ -1,15 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace SpongeEngine.OobaboogaSharp.Models.Completion
 {
     public class CompletionResponse
     {
-        [JsonProperty("choices")]
+        [JsonPropertyName("choices")]
         public List<Choice> Choices { get; set; } = new();
 
         public class Choice
         {
-            [JsonProperty("text")]
+            [JsonPropertyName("text")]
             public string Text { get; set; } = string.Empty;
         }
     }

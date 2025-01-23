@@ -1,34 +1,34 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace SpongeEngine.OobaboogaSharp.Models.Chat
 {
     public class ChatCompletionResponse
     {
-        [JsonProperty("id")]
+        [JsonPropertyName("id")]
         public string Id { get; set; } = string.Empty;
 
-        [JsonProperty("object")]
+        [JsonPropertyName("object")]
         public string Object { get; set; } = "chat.completion";
 
-        [JsonProperty("created")]
+        [JsonPropertyName("created")]
         public long Created { get; set; }
 
-        [JsonProperty("model")]
+        [JsonPropertyName("model")]
         public string Model { get; set; } = string.Empty;
 
-        [JsonProperty("choices")]
+        [JsonPropertyName("choices")]
         public List<ChatCompletionChoice> Choices { get; set; } = new();
     }
 
     public class ChatCompletionChoice
     {
-        [JsonProperty("index")]
+        [JsonPropertyName("index")]
         public int Index { get; set; }
 
-        [JsonProperty("message")]
+        [JsonPropertyName("message")]
         public ChatMessage Message { get; set; } = new();
 
-        [JsonProperty("finish_reason")]
+        [JsonPropertyName("finish_reason")]
         public string? FinishReason { get; set; }
     }
 }

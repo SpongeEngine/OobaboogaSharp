@@ -12,20 +12,19 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration.Providers.OobaboogaSharp
     public class Streaming : IntegrationTestBase
     {
         
-        private readonly OobaboogaSharpClient _clientOobaboogaSharpClient;
+        private readonly OobaboogaSharpClient _client;
         private readonly ILogger<Streaming> _logger;
-
-
+        
         public Streaming(ITestOutputHelper output) : base(output)
         {
             _logger = LoggerFactory
                 .Create(builder => builder.AddXUnit(output))
                 .CreateLogger<Streaming>();
 
-            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new Options
+            _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 BaseUrl = TestConfig.BaseApiUrl
-            }, _logger);
+            });
         }
 
         [SkippableFact]
@@ -50,7 +49,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration.Providers.OobaboogaSharp
 
             // Act
             var chatMessages = new List<ChatMessage>();
-            await foreach (var message in _clientOobaboogaSharpClient.StreamChatCompletionAsync(messages, options))
+            await foreach (var message in _client.StreamChatCompletionAsync(messages, options))
             {
                 _logger.LogInformation("Received message: {Content}", message.Content);
                 chatMessages.Add(message);
@@ -82,7 +81,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration.Providers.OobaboogaSharp
 
             try
             {
-                await foreach (var token in _clientOobaboogaSharpClient.StreamCompletionAsync(
+                await foreach (var token in _client.StreamCompletionAsync(
                     "Write a short story about",
                     options,
                     cts.Token))

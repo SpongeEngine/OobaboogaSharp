@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Newtonsoft.Json;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
-using SpongeEngine.OobaboogaSharp.Providers.OpenAiCompatible;
 using SpongeEngine.OobaboogaSharp.Tests.Common;
 using WireMock.RequestBuilders;
 using WireMock.ResponseBuilders;
@@ -12,13 +11,16 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Providers.OobaboogaSharpOpenAiC
 {
     public class Tests : UnitTestBase
     {
-        private readonly OobaboogaSharpOpenAiCompatibleProvider _provider;
+        private readonly OobaboogaSharpClient _client;
         private readonly HttpClient _httpClient;
 
         public Tests(ITestOutputHelper output) : base(output)
         {
             _httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
-            _provider = new OobaboogaSharpOpenAiCompatibleProvider(_httpClient, logger: Logger);
+            _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
+            {
+                BaseUrl = TestConfig.BaseApiUrl
+            });
         }
 
         [Fact]
@@ -35,7 +37,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Providers.OobaboogaSharpOpenAiC
                     .WithBody($"{{\"choices\": [{{\"text\": \"{expectedResponse}\"}}]}}"));
 
             // Act
-            var response = await _provider.CompleteAsync("Test prompt");
+            var response = await _client.CompleteAsync("Test prompt");
 
             // Assert
             response.Should().Be(expectedResponse);
@@ -70,7 +72,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Providers.OobaboogaSharpOpenAiC
                     .WithBody(JsonConvert.SerializeObject(expectedResponse)));
 
             // Act
-            var response = await _provider.ChatCompleteAsync(
+            var response = await _client.ChatCompleteAsync(
                 new List<ChatMessage> { new() { Role = "user", Content = "Test" } },
                 new ChatCompletionOptions { Mode = "instruct" });
 
@@ -90,7 +92,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Providers.OobaboogaSharpOpenAiC
                     .WithStatusCode(200));
 
             // Act
-            var isAvailable = await _provider.IsAvailableAsync();
+            var isAvailable = await _client.IsAvailableAsync();
 
             // Assert
             isAvailable.Should().BeTrue();

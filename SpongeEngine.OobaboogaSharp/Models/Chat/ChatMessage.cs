@@ -1,13 +1,13 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace SpongeEngine.OobaboogaSharp.Models.Chat
 {
     public class ChatMessage
     {
-        [JsonProperty("role")]
+        [JsonPropertyName("role")]
         public string Role { get; set; } = "user";
 
-        [JsonProperty("content")]
+        [JsonPropertyName("content")]
         public string Content { get; set; } = string.Empty;
     }
 }

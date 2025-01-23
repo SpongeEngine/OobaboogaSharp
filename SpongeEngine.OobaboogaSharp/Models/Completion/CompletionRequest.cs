@@ -1,31 +1,31 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace SpongeEngine.OobaboogaSharp.Models.Completion
 {
     public class CompletionRequest
     {
-        [JsonProperty("model")]
+        [JsonPropertyName("model")]
         public string Model { get; set; } = string.Empty;
 
-        [JsonProperty("prompt")]
+        [JsonPropertyName("prompt")]
         public string Prompt { get; set; } = string.Empty;
 
-        [JsonProperty("max_tokens")]
+        [JsonPropertyName("max_tokens")]
         public int? MaxTokens { get; set; }
 
-        [JsonProperty("temperature")]
+        [JsonPropertyName("temperature")]
         public float? Temperature { get; set; }
 
-        [JsonProperty("top_p")]
+        [JsonPropertyName("top_p")]
         public float? TopP { get; set; }
 
-        [JsonProperty("stop")]
+        [JsonPropertyName("stop")]
         public string[]? StopSequences { get; set; }
 
-        [JsonProperty("stream")]
+        [JsonPropertyName("stream")]
         public bool Stream { get; set; }
 
-        [JsonProperty("seed")]
+        [JsonPropertyName("seed")]
         public int? Seed { get; set; }
     }
 }

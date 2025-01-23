@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace SpongeEngine.OobaboogaSharp.Utils
 {
@@ -26,7 +26,7 @@ namespace SpongeEngine.OobaboogaSharp.Utils
                 T? result = default;
                 try 
                 {
-                    result = JsonConvert.DeserializeObject<T>(data);
+                    result = JsonSerializer.Deserialize<T>(data);
                 }
                 catch (JsonException ex)
                 {

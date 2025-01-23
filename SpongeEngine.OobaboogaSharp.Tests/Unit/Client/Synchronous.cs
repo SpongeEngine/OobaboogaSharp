@@ -17,10 +17,10 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit.Client
 
         public Synchronous(ITestOutputHelper output) : base(output)
         {
-            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new Options
+            _clientOobaboogaSharpClient = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
-                BaseUrl = BaseUrl
-            }, Logger);
+                BaseUrl = TestConfig.BaseApiUrl
+            });
         }
 
         [Fact]
