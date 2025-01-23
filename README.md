@@ -4,22 +4,18 @@
 [![License](https://img.shields.io/github/license/SpongeEngine/OobaboogaSharp)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-6.0%20%7C%207.0%20%7C%208.0%2B-512BD4)](https://dotnet.microsoft.com/download)
 
-C# client for the text-generation-webui API (Oobabooga)
+C# client for interacting with Oobabooga's text-generation-webui through its OpenAI-compatible API endpoints.
 
 ## Features
 - OpenAI-compatible API support
-- Text completion and chat completion
+- Text completion and chat completion 
 - Streaming responses support
 - Character templates and instruction formats
-- Comprehensive configuration options
 - Built-in error handling and logging
 - Cross-platform compatibility
 - Full async/await support
 
-📦 [View Package on NuGet](https://www.nuget.org/packages/SpongeEngine.OobaboogaSharp)
-
 ## Installation
-Install via NuGet:
 ```bash
 dotnet add package SpongeEngine.OobaboogaSharp
 ```
@@ -28,18 +24,17 @@ dotnet add package SpongeEngine.OobaboogaSharp
 
 ```csharp
 using SpongeEngine.OobaboogaSharp;
-using SpongeEngine.OobaboogaSharp.Models.Common;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
-
-// Configure the client
-var options = new Options
-{
-    BaseUrl = "http://localhost:5000",  // Default port for text-generation-webui
-    TimeoutSeconds = 120
-};
+using SpongeEngine.OobaboogaSharp.Models.Completion;
 
 // Create client instance
-using var client = new OobaboogaSharpClient(options);
+var client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions
+{
+    HttpClient = new HttpClient 
+    {
+        BaseAddress = new Uri("http://localhost:5000")
+    }
+});
 
 // Simple completion
 var response = await client.CompleteAsync(
@@ -56,7 +51,7 @@ Console.WriteLine(response);
 // Chat completion
 var messages = new List<ChatMessage>
 {
-    OobaboogaSharpClient.CreateChatMessage("user", "Write a poem about coding")
+    new() { Role = "user", Content = "Write a poem about coding" }
 };
 
 var chatResponse = await client.ChatCompleteAsync(
@@ -93,14 +88,14 @@ var options = new Options
 ```csharp
 var options = new ChatCompletionOptions
 {
-    ModelName = "optional_model_name",    // Specific model to use
-    MaxTokens = 200,                      // Maximum tokens to generate
-    Temperature = 0.7f,                   // Randomness (0.0-1.0)
-    TopP = 0.9f,                         // Nucleus sampling threshold
-    StopSequences = new[] { "\n" },      // Stop sequences
-    Mode = "chat",                       // "chat" or "instruct"
-    InstructionTemplate = "Alpaca",      // Template for instruction format
-    Character = "Assistant"              // Character template to use
+    ModelName = "model_name",           // Optional
+    MaxTokens = 200,
+    Temperature = 0.7f,
+    TopP = 0.9f,
+    StopSequences = new[] { "\n" },
+    Mode = "chat",                      // "chat" or "instruct"
+    InstructionTemplate = "Alpaca",     // For instruct mode
+    Character = "Assistant"             // Optional character template
 };
 ```
 
@@ -108,7 +103,7 @@ var options = new ChatCompletionOptions
 ```csharp
 var options = new CompletionOptions
 {
-    ModelName = "optional_model_name",
+    ModelName = "model_name",          // Optional
     MaxTokens = 200,
     Temperature = 0.7f,
     TopP = 0.9f,
@@ -124,40 +119,24 @@ try
 }
 catch (Exception ex) when (ex is SpongeEngine.OobaboogaSharp.Models.Common.Exception oobaboogaEx)
 {
-    Console.WriteLine($"Oobabooga error: {ex.Message}");
-    Console.WriteLine($"Provider: {oobaboogaEx.Provider}");
+    Console.WriteLine($"Error: {ex.Message}");
     Console.WriteLine($"Status code: {oobaboogaEx.StatusCode}");
-    Console.WriteLine($"Response content: {oobaboogaEx.ResponseContent}");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"General error: {ex.Message}");
+    Console.WriteLine($"Response: {oobaboogaEx.ResponseContent}");
 }
 ```
 
 ## Logging
-The client supports Microsoft.Extensions.Logging:
-
 ```csharp
-ILogger logger = LoggerFactory
-    .Create(builder => builder
-        .AddConsole()
-        .SetMinimumLevel(LogLevel.Debug))
-    .CreateLogger<OobaboogaSharpClient>();
-
-var client = new OobaboogaSharpClient(options, logger);
-```
-
-## JSON Serialization
-Custom JSON settings can be provided:
-
-```csharp
-var jsonSettings = new JsonSerializerSettings
+var client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions
 {
-    NullValueHandling = NullValueHandling.Ignore
-};
-
-var client = new OobaboogaSharpClient(options, logger, jsonSettings);
+    HttpClient = new HttpClient 
+    {
+        BaseAddress = new Uri("http://localhost:5000")
+    },
+    Logger = LoggerFactory
+        .Create(builder => builder.AddConsole())
+        .CreateLogger<OobaboogaSharpClient>()
+});
 ```
 
 ## Testing
