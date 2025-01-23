@@ -52,23 +52,15 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
         [Fact]
         public async Task ChatComplete_WithCharacter_ShouldWork()
         {
+            // Arrange
             var expectedResponse = new ChatCompletionResponse
             {
                 Id = "test",
-                Object = "chat.completion",
-                Created = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                Model = "test-model",
                 Choices = new List<ChatCompletionChoice>
                 {
                     new()
                     {
-                        Index = 0,
-                        Message = new ChatMessage
-                        {
-                            Role = "assistant",
-                            Content = "Hello!"
-                        },
-                        FinishReason = "stop"
+                        Message = new ChatMessage { Role = "assistant", Content = "Hello!" }
                     }
                 }
             };
@@ -79,13 +71,15 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithBody(body => body.Contains("\"character\":\"Example\""))
                     .UsingPost())
                 .RespondWith(Response.Create()
-                    .WithHeader("Content-Type", "application/json")
+                    .WithStatusCode(200)
                     .WithBody(JsonSerializer.Serialize(expectedResponse)));
 
+            // Act
             var response = await Client.ChatCompleteAsync(
                 new List<ChatMessage> { new() { Role = "user", Content = "Hi" } },
                 new ChatCompletionOptions { Character = "Example" });
 
+            // Assert
             response.Should().NotBeNull();
             response.Choices.Should().NotBeEmpty();
             response.Choices[0].Message.Content.Should().Be("Hello!");
