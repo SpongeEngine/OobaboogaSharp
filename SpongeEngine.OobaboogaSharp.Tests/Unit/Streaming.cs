@@ -23,7 +23,6 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                 {
                     BaseAddress = new Uri(Server.Urls[0])
                 },
-                BaseUrl = BaseApiUrl,
                 Logger = LoggerFactory
                     .Create(builder => builder.AddXUnit(output))
                     .CreateLogger<Streaming>(),

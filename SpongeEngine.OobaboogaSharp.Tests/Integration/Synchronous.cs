@@ -20,7 +20,6 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Integration
                 {
                     BaseAddress = new Uri(BaseApiUrl)
                 },
-                BaseUrl = BaseApiUrl,
                 Logger = LoggerFactory
                     .Create(builder => builder.AddXUnit(output))
                     .CreateLogger<Synchronous>(),

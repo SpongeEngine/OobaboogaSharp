@@ -12,20 +12,17 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
 {
     public class Tests : UnitTestBase
     {
-        private readonly OobaboogaSharpClient _client;
-        private readonly HttpClient _httpClient;
+        private OobaboogaSharpClient Client { get; }
 
         public Tests(ITestOutputHelper output) : base(output)
         {
-            _httpClient = new HttpClient { BaseAddress = new Uri(BaseUrl) };
-            _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
+            Client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 HttpClient = new HttpClient 
                 {
                     BaseAddress = new Uri(Server.Urls[0])
                 },
-                BaseUrl = BaseApiUrl,
-                Logger = LoggerFactory
+                 Logger = LoggerFactory
                     .Create(builder => builder.AddXUnit(output))
                     .CreateLogger<Tests>(),
             });
@@ -45,7 +42,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithBody($"{{\"choices\": [{{\"text\": \"{expectedResponse}\"}}]}}"));
 
             // Act
-            var response = await _client.CompleteAsync("Test prompt");
+            var response = await Client.CompleteAsync("Test prompt");
 
             // Assert
             response.Should().Be(expectedResponse);
@@ -80,7 +77,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithBody(JsonConvert.SerializeObject(expectedResponse)));
 
             // Act
-            var response = await _client.ChatCompleteAsync(
+            var response = await Client.ChatCompleteAsync(
                 new List<ChatMessage> { new() { Role = "user", Content = "Test" } },
                 new ChatCompletionOptions { Mode = "instruct" });
 
@@ -100,7 +97,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithStatusCode(200));
 
             // Act
-            var isAvailable = await _client.IsAvailableAsync();
+            var isAvailable = await Client.IsAvailableAsync();
 
             // Assert
             isAvailable.Should().BeTrue();

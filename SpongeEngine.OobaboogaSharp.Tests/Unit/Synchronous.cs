@@ -13,17 +13,16 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
 {
     public class Synchronous : UnitTestBase
     {
-        private readonly OobaboogaSharpClient _client;
+        private OobaboogaSharpClient Client { get; }
 
         public Synchronous(ITestOutputHelper output) : base(output)
         {
-            _client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
+            Client = new OobaboogaSharpClient(new OobaboogaSharpClientOptions()
             {
                 HttpClient = new HttpClient 
                 {
                     BaseAddress = new Uri(Server.Urls[0])
                 },
-                BaseUrl = BaseApiUrl,
                 Logger = LoggerFactory
                     .Create(builder => builder.AddXUnit(output))
                     .CreateLogger<Synchronous>(),
@@ -44,7 +43,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithBody($"{{\"choices\": [{{\"text\": \"{expectedResponse}\"}}]}}"));
 
             // Act
-            var response = await _client.CompleteAsync("Test prompt");
+            var response = await Client.CompleteAsync("Test prompt");
 
             // Assert
             response.Should().Be(expectedResponse);
@@ -76,7 +75,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithBody(JsonConvert.SerializeObject(expectedResponse)));
 
             // Act
-            var response = await _client.ChatCompleteAsync(
+            var response = await Client.ChatCompleteAsync(
                 new List<ChatMessage> { new() { Role = "user", Content = "Hi" } },
                 new ChatCompletionOptions { Character = "Example" });
 
@@ -97,7 +96,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithBody("Internal server error"));
 
             // Act & Assert
-            var act = () => _client.CompleteAsync("Test prompt");
+            var act = () => Client.CompleteAsync("Test prompt");
             await act.Should().ThrowAsync<Exception>()
                 .WithMessage("Completion request failed");
         }
@@ -117,7 +116,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
                     .WithDelay(TimeSpan.FromSeconds(5)));
 
             // Act & Assert
-            var completeTask = _client.CompleteAsync("Test prompt", cancellationToken: cts.Token);
+            var completeTask = Client.CompleteAsync("Test prompt", cancellationToken: cts.Token);
             cts.Cancel();
     
             await Assert.ThrowsAsync<TaskCanceledException>(() => completeTask);
