@@ -21,7 +21,7 @@ namespace SpongeEngine.OobaboogaSharp.Tests.Unit
             {
                 HttpClient = new HttpClient 
                 {
-                    BaseAddress = new Uri(BaseApiUrl)
+                    BaseAddress = new Uri(Server.Urls[0])
                 },
                 BaseUrl = BaseApiUrl,
                 Logger = LoggerFactory
