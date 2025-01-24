@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/github/license/SpongeEngine/OobaboogaSharp)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-6.0%20%7C%207.0%20%7C%208.0%2B-512BD4)](https://dotnet.microsoft.com/download)
 
-C# client for text-generation-webui API (Oobabooga).
+C# client for Oobabooga.
 
 ## Features
 - OpenAI-compatible API support
