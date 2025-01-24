@@ -5,13 +5,18 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using SpongeEngine.LLMSharp.Core;
+using SpongeEngine.LLMSharp.Core.Interfaces;
+using SpongeEngine.LLMSharp.Core.Models;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
 using SpongeEngine.OobaboogaSharp.Models.Completion;
+using ChatMessage = SpongeEngine.OobaboogaSharp.Models.Chat.ChatMessage;
+using CompletionOptions = SpongeEngine.OobaboogaSharp.Models.Completion.CompletionOptions;
+using CompletionRequest = SpongeEngine.LLMSharp.Core.Models.CompletionRequest;
 using Exception = SpongeEngine.OobaboogaSharp.Models.Common.Exception;
 
 namespace SpongeEngine.OobaboogaSharp
 {
-    public class OobaboogaSharpClient: LlmClientBase
+    public class OobaboogaSharpClient: LlmClientBase, ICompletionService
     {
         public OobaboogaSharpClient(OobaboogaSharpClientOptions options): base(options) {}
 
@@ -354,6 +359,132 @@ namespace SpongeEngine.OobaboogaSharp
                 [JsonPropertyName("text")]
                 public string Text { get; set; } = string.Empty;
             }
+        }
+
+        public async Task<CompletionResult> CompleteAsync(
+            CompletionRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            var startTime = DateTime.UtcNow;
+    
+            var options = new Models.Completion.CompletionOptions
+            {
+                ModelName = request.ModelId,
+                MaxTokens = request.MaxTokens,
+                Temperature = request.Temperature,
+                TopP = request.TopP,
+                StopSequences = request.StopSequences.ToArray()
+            };
+
+            // Apply any provider-specific parameters
+            foreach (var param in request.ProviderParameters)
+            {
+                Options.Logger?.LogDebug("Additional provider parameter: {Key}={Value}", param.Key, param.Value);
+                // Here we could handle specific Oobabooga parameters if needed
+            }
+
+            var response = await CompleteAsync(request.Prompt, options, cancellationToken);
+            var generationTime = DateTime.UtcNow - startTime;
+
+            return new CompletionResult
+            {
+                Text = response,
+                ModelId = request.ModelId,
+                TokenUsage = new CompletionTokenUsage
+                {
+                    // Note: Oobabooga API doesn't provide token usage information
+                    // These would need to be computed using a tokenizer if needed
+                    PromptTokens = 0,
+                    CompletionTokens = 0,
+                    TotalTokens = 0
+                },
+                FinishReason = null, // Oobabooga doesn't provide finish reason in non-streaming mode
+                GenerationTime = generationTime,
+                Metadata = new Dictionary<string, object>
+                {
+                    ["provider"] = "Oobabooga",
+                    ["sourceUrl"] = Options.HttpClient.BaseAddress,
+                }
+            };
+        }
+
+        public async IAsyncEnumerable<CompletionToken> StreamCompletionAsync(
+            CompletionRequest request,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var options = new Models.Completion.CompletionOptions
+            {
+                ModelName = request.ModelId,
+                MaxTokens = request.MaxTokens,
+                Temperature = request.Temperature,
+                TopP = request.TopP,
+                StopSequences = request.StopSequences.ToArray()
+            };
+
+            var totalTokens = 0;
+            string lastToken = string.Empty;
+
+            await foreach (var token in StreamCompletionAsync(request.Prompt, options, cancellationToken))
+            {
+                // Simple token count estimation
+                var tokenCount = EstimateTokenCount(token);
+                totalTokens += tokenCount;
+
+                lastToken = token;
+
+                yield return new CompletionToken
+                {
+                    Text = token,
+                    TokenCount = totalTokens,
+                    FinishReason = null // Set when we detect end of stream or stop sequence
+                };
+            }
+
+            // Set finish reason for the last token if we can determine it
+            if (request.StopSequences.Any(stop => lastToken.EndsWith(stop)))
+            {
+                yield return new CompletionToken
+                {
+                    Text = string.Empty,
+                    TokenCount = totalTokens,
+                    FinishReason = "stop"
+                };
+            }
+            else if (options.MaxTokens.HasValue && totalTokens >= options.MaxTokens.Value)
+            {
+                yield return new CompletionToken
+                {
+                    Text = string.Empty,
+                    TokenCount = totalTokens,
+                    FinishReason = "length"
+                };
+            }
+            else
+            {
+                yield return new CompletionToken
+                {
+                    Text = string.Empty,
+                    TokenCount = totalTokens,
+                    FinishReason = "done"
+                };
+            }
+        }
+        
+        private static int EstimateTokenCount(string text)
+        {
+            // This is a very rough estimation - in practice you'd want to use
+            // a proper tokenizer that matches your model
+            if (string.IsNullOrEmpty(text)) return 0;
+    
+            // Split on whitespace and punctuation
+            var tokens = text.Split(new[] { ' ', '\n', '\r', '\t', '.', ',', '!', '?', ';', ':' }, 
+                StringSplitOptions.RemoveEmptyEntries);
+    
+            // Count remaining non-whitespace characters as potential sub-word tokens
+            var remainingChars = text.Count(c => !char.IsWhiteSpace(c));
+            var estimatedSubwordTokens = remainingChars / 4; // Assume average subword length of 4
+    
+            return Math.Max(1, tokens.Length + estimatedSubwordTokens);
         }
     }
 }
