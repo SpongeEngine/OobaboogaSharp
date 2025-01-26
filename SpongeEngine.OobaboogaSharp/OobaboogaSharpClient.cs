@@ -4,26 +4,22 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using SpongeEngine.LLMSharp.Core;
-using SpongeEngine.LLMSharp.Core.Interfaces;
-using SpongeEngine.LLMSharp.Core.Models;
 using SpongeEngine.OobaboogaSharp.Models.Chat;
 using SpongeEngine.OobaboogaSharp.Models.Completion;
+using SpongeEngine.SpongeLLM.Core;
+using SpongeEngine.SpongeLLM.Core.Interfaces;
+using SpongeEngine.SpongeLLM.Core.Models;
 using ChatMessage = SpongeEngine.OobaboogaSharp.Models.Chat.ChatMessage;
 using CompletionOptions = SpongeEngine.OobaboogaSharp.Models.Completion.CompletionOptions;
-using CompletionRequest = SpongeEngine.LLMSharp.Core.Models.CompletionRequest;
 using Exception = SpongeEngine.OobaboogaSharp.Models.Common.Exception;
 
 namespace SpongeEngine.OobaboogaSharp
 {
-    public class OobaboogaSharpClient: LlmClientBase, ICompletionService
+    public class OobaboogaSharpClient: LLMClientBase, ITextCompletion, IStreamableTextCompletion
     {
         public OobaboogaSharpClient(OobaboogaSharpClientOptions options): base(options) {}
 
-        public async Task<string> CompleteAsync(
-            string prompt,
-            CompletionOptions? options = null,
-            CancellationToken cancellationToken = default)
+        public async Task<string> CompleteAsync(string prompt, CompletionOptions? options = null, CancellationToken cancellationToken = default)
         {
             var request = new
             {
@@ -57,10 +53,7 @@ namespace SpongeEngine.OobaboogaSharp
             return result?.Choices.FirstOrDefault()?.Text ?? string.Empty;
         }
 
-        public async Task<ChatCompletionResponse> ChatCompleteAsync(
-            List<ChatMessage> messages,
-            ChatCompletionOptions? options = null,
-            CancellationToken cancellationToken = default)
+        public async Task<ChatCompletionResponse> ChatCompleteAsync(List<ChatMessage> messages, ChatCompletionOptions? options = null, CancellationToken cancellationToken = default)
         {
             if (!messages.Any())
             {
@@ -98,10 +91,7 @@ namespace SpongeEngine.OobaboogaSharp
             return result ?? new ChatCompletionResponse();
         }
 
-        public async IAsyncEnumerable<string> StreamCompletionAsync(
-            string prompt,
-            CompletionOptions? options = null,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<string> StreamCompletionAsync(string prompt, CompletionOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var request = new
             {
@@ -203,10 +193,7 @@ namespace SpongeEngine.OobaboogaSharp
             public List<ChatCompletionChunkChoice> Choices { get; set; } = new();
         }
 
-        public async IAsyncEnumerable<ChatMessage> StreamChatCompletionAsync(
-            List<ChatMessage> messages,
-            ChatCompletionOptions? options = null,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<ChatMessage> StreamChatCompletionAsync(List<ChatMessage> messages, ChatCompletionOptions? options = null, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var httpResponse = await GetStreamResponseAsync(messages, options, cancellationToken);
             using var stream = await httpResponse.Content.ReadAsStreamAsync(cancellationToken);
@@ -271,10 +258,7 @@ namespace SpongeEngine.OobaboogaSharp
             }
         }
         
-        private async Task<HttpResponseMessage> GetStreamResponseAsync(
-            List<ChatMessage> messages,
-            ChatCompletionOptions? options,
-            CancellationToken cancellationToken)
+        private async Task<HttpResponseMessage> GetStreamResponseAsync(List<ChatMessage> messages, ChatCompletionOptions? options, CancellationToken cancellationToken)
         {
             try
             {
@@ -360,10 +344,8 @@ namespace SpongeEngine.OobaboogaSharp
                 public string Text { get; set; } = string.Empty;
             }
         }
-
-        public async Task<CompletionResult> CompleteAsync(
-            CompletionRequest request,
-            CancellationToken cancellationToken = default)
+        
+        public async Task<TextCompletionResult> CompleteTextAsync(TextCompletionRequest request, CancellationToken cancellationToken = new CancellationToken())
         {
             var startTime = DateTime.UtcNow;
     
@@ -386,11 +368,11 @@ namespace SpongeEngine.OobaboogaSharp
             var response = await CompleteAsync(request.Prompt, options, cancellationToken);
             var generationTime = DateTime.UtcNow - startTime;
 
-            return new CompletionResult
+            return new TextCompletionResult
             {
                 Text = response,
                 ModelId = request.ModelId,
-                TokenUsage = new CompletionTokenUsage
+                TokenUsage = new TextCompletionTokenUsage
                 {
                     // Note: Oobabooga API doesn't provide token usage information
                     // These would need to be computed using a tokenizer if needed
@@ -408,9 +390,7 @@ namespace SpongeEngine.OobaboogaSharp
             };
         }
 
-        public async IAsyncEnumerable<CompletionToken> StreamCompletionAsync(
-            CompletionRequest request,
-            [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<TextCompletionToken> CompleteTextStreamAsync(TextCompletionRequest request, CancellationToken cancellationToken = new CancellationToken())
         {
             var options = new Models.Completion.CompletionOptions
             {
@@ -432,7 +412,7 @@ namespace SpongeEngine.OobaboogaSharp
 
                 lastToken = token;
 
-                yield return new CompletionToken
+                yield return new TextCompletionToken
                 {
                     Text = token,
                     TokenCount = totalTokens,
@@ -443,7 +423,7 @@ namespace SpongeEngine.OobaboogaSharp
             // Set finish reason for the last token if we can determine it
             if (request.StopSequences.Any(stop => lastToken.EndsWith(stop)))
             {
-                yield return new CompletionToken
+                yield return new TextCompletionToken
                 {
                     Text = string.Empty,
                     TokenCount = totalTokens,
@@ -452,7 +432,7 @@ namespace SpongeEngine.OobaboogaSharp
             }
             else if (options.MaxTokens.HasValue && totalTokens >= options.MaxTokens.Value)
             {
-                yield return new CompletionToken
+                yield return new TextCompletionToken
                 {
                     Text = string.Empty,
                     TokenCount = totalTokens,
@@ -461,7 +441,7 @@ namespace SpongeEngine.OobaboogaSharp
             }
             else
             {
-                yield return new CompletionToken
+                yield return new TextCompletionToken
                 {
                     Text = string.Empty,
                     TokenCount = totalTokens,

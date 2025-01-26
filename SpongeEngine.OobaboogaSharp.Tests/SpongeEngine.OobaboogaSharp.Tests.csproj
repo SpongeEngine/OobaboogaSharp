@@ -3,10 +3,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
-        <Version>2.3.4</Version>
+        <Version>2.3.0.1</Version>
         <TargetFrameworks>net8.0;net6.0;net7.0</TargetFrameworks>
     </PropertyGroup>
-
     <ItemGroup>
         <PackageReference Include="FluentAssertions" Version="8.0.1" />
         <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.5.1" />

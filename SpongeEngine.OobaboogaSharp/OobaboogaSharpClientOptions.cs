@@ -1,7 +1,6 @@
-﻿using SpongeEngine.LLMSharp.Core;
+﻿using SpongeEngine.SpongeLLM.Core;
 
-namespace SpongeEngine.OobaboogaSharp;
-
-public class OobaboogaSharpClientOptions: LlmClientBaseOptions
+namespace SpongeEngine.OobaboogaSharp
 {
+    public class OobaboogaSharpClientOptions: LLMClientBaseOptions {}
 }
