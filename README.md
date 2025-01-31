@@ -15,6 +15,8 @@ C# client for Oobabooga.
 - Cross-platform compatibility
 - Full async/await support
 
+📦 [View Package on NuGet](https://www.nuget.org/packages/SpongeEngine.OobaboogaSharp)
+
 ## Installation
 ```bash
 dotnet add package SpongeEngine.OobaboogaSharp
